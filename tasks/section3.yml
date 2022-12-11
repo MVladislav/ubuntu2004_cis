@@ -440,19 +440,19 @@
 - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured"
   block:
     - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured| ingress lo allow any"
-      ufw:
+      community.general.ufw:
         rule: allow
         direction: in
         interface: lo
 
     - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured | ingress deny from lo network ipv4"
-      ufw:
+      community.general.ufw:
         rule: deny
         direction: in
         from: "127.0.0.0/8"
 
     - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured | ingress deny from lo network ipv6"
-      ufw:
+      community.general.ufw:
         rule: deny
         direction: in
         from: "::1"
@@ -468,7 +468,7 @@
     - rule_3.5.1.4
 
 - name: "NOTSCORED | 3.5.1.5 | PATCH | Ensure outbound connections are configured"
-  ufw:
+  community.general.ufw:
     rule: allow
     direction: out
     interface: all
@@ -485,13 +485,13 @@
 - name: "NOTSCORED | 3.5.1.6 | PATCH | Ensure firewall rules exist for all open ports"
   block:
     - name: "NOTSCORED | 3.5.1.6 | PATCH | Ensure firewall rules exist for all open ports| ssh"
-      ufw:
+      community.general.ufw:
         rule: allow
         proto: tcp
         port: "22"
 
     - name: "NOTSCORED | 3.5.1.6 | PATCH | Ensure firewall rules exist for all open ports| dns"
-      ufw:
+      community.general.ufw:
         rule: allow
         proto: "{{ item }}"
         port: "53"
@@ -509,13 +509,16 @@
     - rule_3.5.1.6
 
 - name: "SCORED | 3.5.1.7 | PATCH | Ensure default deny firewall policy"
-  ufw:
+  community.general.ufw:
     rule: "{{ item.rule }}"
     direction: "{{ item.direction }}"
   with_items:
-    - { rule: deny, direction: incoming }
-    - { rule: deny, direction: outgoing }
-    - { rule: deny, direction: routed }
+    - rule: deny
+      direction: incoming
+    - rule: deny
+      direction: outgoing
+    - rule: deny
+      direction: routed
   when:
     - ubuntu2004cis_rule_3_5_1_7
     - ubuntu2004cis_firewall == "ufw"
