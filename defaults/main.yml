@@ -330,12 +330,12 @@ ubuntu2004cis_config_aide: true
 ubuntu2004cis_aide_cron:
   cron_user: root
   cron_file: aide
-  aide_job: '/usr/bin/aide.wrapper --config /etc/aide/aide.conf --check'
+  aide_job: "/usr/bin/aide.wrapper --config /etc/aide/aide.conf --check"
   aide_minute: 0
   aide_hour: 5
-  aide_day: '*'
-  aide_month: '*'
-  aide_weekday: '*'
+  aide_day: "*"
+  aide_month: "*"
+  aide_weekday: "*"
 
 # Whether or not to run tasks related to auditing/patching the desktop environment
 ubuntu2004cis_gui: false
@@ -367,9 +367,9 @@ ubuntu2004cis_time_synchronization_servers:
 # 3.3 TCP Wrappers
 ubuntu2004cis_setup_tcp_wrappers: false
 
-ubuntu2004cis_firewall: firewalld
+# ubuntu2004cis_firewall: firewalld
 # ubuntu2004cis_firewall: iptables
-# ubuntu2004cis_firewall: ufw
+ubuntu2004cis_firewall: ufw
 # ubuntu2004cis_firewall: nftables
 
 # 3.5.3.2 | PATCH | Ensure a table exists"
@@ -381,9 +381,8 @@ ubuntu2004cis_firewall_services:
 
 # Warning Banner Content (issue, issue.net, motd)
 ubuntu2004cis_warning_banner: |
-   Authorized uses only. All activity may be monitored and reported.
+  Authorized uses only. All activity may be monitored and reported.
 # End Banner
-
 ## Section 4 Vars
 ubuntu2004cis_auditd:
   admin_space_left_action: halt
@@ -402,7 +401,8 @@ ubuntu2004cis_sshd:
   clientaliveinterval: 300
   ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
   macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
-  kexalgorithms: "curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+  kexalgorithms: >
+    curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
   logingracetime: 60
   ### Make sure you understand the precedence when working with these values!!
   # allowusers:
@@ -411,16 +411,16 @@ ubuntu2004cis_sshd:
   # denygroups:
 
 ubuntu2004cis_pwquality:
-  - key: 'minlen'
-    value: '14'
-  - key: 'dcredit'
-    value: '-1'
-  - key: 'ucredit'
-    value: '-1'
-  - key: 'ocredit'
-    value: '-1'
-  - key: 'lcredit'
-    value: '-1'
+  - key: "minlen"
+    value: "14"
+  - key: "dcredit"
+    value: "-1"
+  - key: "ucredit"
+    value: "-1"
+  - key: "ocredit"
+    value: "-1"
+  - key: "lcredit"
+    value: "-1"
 
 ubuntu2004cis_pass:
   max_days: 365

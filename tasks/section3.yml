@@ -1,6 +1,6 @@
 ---
 - name: "NOTSCORED | 3.1.1 | PATCH | Disable IPv6"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item }}"
     value: "1"
     state: present
@@ -38,7 +38,7 @@
     - rule_3.1.1
 
 - name: "SCORED | 3.1.2 | PATCH | Ensure wireless interfaces are disabled"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_set: true
@@ -61,7 +61,7 @@
     - rule_3.1.2
 
 - name: "SCORED | 3.2.1 | PATCH | Ensure packet redirect sending is disabled"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_set: true
@@ -84,27 +84,6 @@
     - rule_3.2.1
 
 - name: "SCORED | 3.2.2 | PATCH | Ensure IP forwarding is disabled"
-  block:
-    - name: "SCORED | 3.2.2 | PATCH | Ensure IP forwarding is disabled | ipv4"
-      sysctl:
-        name: net.ipv4.ip_forward
-        value: "0"
-        state: present
-        reload: true
-        ignoreerrors: true
-      notify:
-        - sysctl flush ipv4 route table
-
-    - name: "SCORED | 3.2.2 | PATCH | Ensure IP forwarding is disabled | ipv6"
-      sysctl:
-        name: net.ipv6.conf.all.forwarding
-        value: "0"
-        state: present
-        reload: true
-        ignoreerrors: true
-      when: ubuntu2004cis_ipv6_required
-      notify:
-        - sysctl flush ipv6 route table
   when:
     - not ubuntu2004cis_is_router
     - ubuntu2004cis_rule_3_2_2
@@ -114,11 +93,40 @@
     - patch
     - sysctl
     - rule_3.2.2
+  block:
+    - name: "SCORED | 3.2.2 | PATCH | Ensure IP forwarding is disabled | ipv4"
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "0"
+        state: present
+        reload: true
+        ignoreerrors: true
+      notify:
+        - sysctl flush ipv4 route table
+
+    - name: "SCORED | 3.2.2 | PATCH | Ensure IP forwarding is disabled | ipv6"
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: "0"
+        state: present
+        reload: true
+        ignoreerrors: true
+      when: ubuntu2004cis_ipv6_required
+      notify:
+        - sysctl flush ipv6 route table
 
 - name: "SCORED | 3.3.1 | PATCH | Ensure source routed packets are not accepted"
+  when:
+    - ubuntu2004cis_rule_3_3_1
+  tags:
+    - level1
+    - scored
+    - patch
+    - sysctl
+    - rule_3.3.1
   block:
     - name: "SCORED | 3.3.1 | PATCH | Ensure source routed packets are not accepted | ipv4"
-      sysctl:
+      ansible.posix.sysctl:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
         sysctl_set: true
@@ -132,7 +140,7 @@
         - sysctl flush ipv4 route table
 
     - name: "SCORED | 3.3.1 | PATCH | Ensure source routed packets are not accepted | ipv6"
-      sysctl:
+      ansible.posix.sysctl:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
         sysctl_set: true
@@ -146,19 +154,19 @@
         - ubuntu2004cis_ipv6_required
       notify:
         - sysctl flush ipv6 route table
+
+- name: "SCORED | 3.3.2 | PATCH | Ensure ICMP redirects are not accepted | ipv4,ipv6"
   when:
-    - ubuntu2004cis_rule_3_3_1
+    - ubuntu2004cis_rule_3_3_2
   tags:
     - level1
     - scored
     - patch
     - sysctl
-    - rule_3.3.1
-
-- name: "SCORED | 3.3.2 | PATCH | Ensure ICMP redirects are not accepted | ipv4,ipv6"
+    - rule_3.3.2
   block:
     - name: "SCORED | 3.3.2 | PATCH | Ensure ICMP redirects are not accepted | ipv4"
-      sysctl:
+      ansible.posix.sysctl:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
         sysctl_set: true
@@ -172,7 +180,7 @@
         - sysctl flush ipv4 route table
 
     - name: "SCORED | 3.3.2 | PATCH | Ensure ICMP redirects are not accepted | ipv6"
-      sysctl:
+      ansible.posix.sysctl:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
         sysctl_set: true
@@ -186,17 +194,9 @@
         - ubuntu2004cis_ipv6_required
       notify:
         - sysctl flush ipv6 route table
-  when:
-    - ubuntu2004cis_rule_3_3_2
-  tags:
-    - level1
-    - scored
-    - patch
-    - sysctl
-    - rule_3.3.2
 
 - name: "SCORED | 3.3.3 | PATCH | Ensure secure ICMP redirects are not accepted"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_set: true
@@ -218,7 +218,7 @@
     - rule_3.3.3
 
 - name: "SCORED | 3.3.4 | PATCH | Ensure suspicious packets are logged"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_set: true
@@ -240,7 +240,7 @@
     - rule_3.3.4
 
 - name: "SCORED | 3.3.5 | PATCH | Ensure broadcast ICMP requests are ignored"
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.icmp_echo_ignore_broadcasts
     value: "1"
     state: present
@@ -258,7 +258,7 @@
     - rule_3.3.5
 
 - name: "SCORED | 3.3.6 | PATCH | Ensure bogus ICMP responses are ignored"
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.icmp_ignore_bogus_error_responses
     value: "1"
     state: present
@@ -276,7 +276,7 @@
     - rule_3.3.6
 
 - name: "SCORED | 3.3.7 | PATCH | Ensure Reverse Path Filtering is enabled"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_set: true
@@ -298,7 +298,7 @@
     - rule_3.3.7
 
 - name: "SCORED | 3.3.8 | PATCH | Ensure TCP SYN Cookies is enabled"
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.tcp_syncookies
     value: "1"
     state: present
@@ -316,7 +316,7 @@
     - rule_3.3.8
 
 - name: "SCORED | 3.3.9 | PATCH | Ensure IPv6 router advertisements are not accepted"
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
@@ -343,6 +343,7 @@
     regexp: "^(#)?install dccp(\\s|$)"
     line: "install dccp /bin/true"
     create: true
+    mode: "0644"
   when:
     - ubuntu2004cis_rule_3_4_1
   tags:
@@ -357,6 +358,7 @@
     regexp: "^(#)?install sctp(\\s|$)"
     line: "install sctp /bin/true"
     create: true
+    mode: "0644"
   when:
     - ubuntu2004cis_rule_3_4_2
   tags:
@@ -371,6 +373,7 @@
     regexp: "^(#)?install rds(\\s|$)"
     line: "install rds /bin/true"
     create: true
+    mode: "0644"
   when:
     - ubuntu2004cis_rule_3_4_3
   tags:
@@ -385,6 +388,7 @@
     regexp: "^(#)?install tipc(\\s|$)"
     line: "install tipc /bin/true"
     create: true
+    mode: "0644"
   when:
     - ubuntu2004cis_rule_3_4_4
   tags:
@@ -438,6 +442,15 @@
     - rule_3.5.1.3
 
 - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured"
+  when:
+    - ubuntu2004cis_rule_3_5_1_4
+    - ubuntu2004cis_firewall == "ufw"
+    - ubuntu2004cis_setup_firewall
+  tags:
+    - level1
+    - scored
+    - patch
+    - rule_3.5.1.4
   block:
     - name: "SCORED | 3.5.1.4 | PATCH | Ensure loopback traffic is configured| ingress lo allow any"
       community.general.ufw:
@@ -457,15 +470,6 @@
         direction: in
         from: "::1"
       when: ubuntu2004cis_ipv6_required
-  when:
-    - ubuntu2004cis_rule_3_5_1_4
-    - ubuntu2004cis_firewall == "ufw"
-    - ubuntu2004cis_setup_firewall
-  tags:
-    - level1
-    - scored
-    - patch
-    - rule_3.5.1.4
 
 - name: "NOTSCORED | 3.5.1.5 | PATCH | Ensure outbound connections are configured"
   community.general.ufw:
@@ -483,6 +487,15 @@
     - rule_3.5.1.5
 
 - name: "NOTSCORED | 3.5.1.6 | PATCH | Ensure firewall rules exist for all open ports"
+  when:
+    - ubuntu2004cis_rule_3_5_1_6
+    - ubuntu2004cis_firewall == "ufw"
+    - ubuntu2004cis_setup_firewall
+  tags:
+    - level1
+    - notscored
+    - patch
+    - rule_3.5.1.6
   block:
     - name: "NOTSCORED | 3.5.1.6 | PATCH | Ensure firewall rules exist for all open ports| ssh"
       community.general.ufw:
@@ -498,15 +511,6 @@
       loop:
         - tcp
         - udp
-  when:
-    - ubuntu2004cis_rule_3_5_1_6
-    - ubuntu2004cis_firewall == "ufw"
-    - ubuntu2004cis_setup_firewall
-  tags:
-    - level1
-    - notscored
-    - patch
-    - rule_3.5.1.6
 
 - name: "SCORED | 3.5.1.7 | PATCH | Ensure default deny firewall policy"
   community.general.ufw:
@@ -559,25 +563,25 @@
     - rule_3.5.2.2
 
 - name: "NOTSCORED | 3.5.2.3 | PATCH | Ensure iptables are flushed | ipv4, ipv6"
-  block:
-    - name: "NOTSCORED | 3.5.2.3 | PATCH | Ensure iptables are flushed | ipv4"
-      ansible.builtin.iptables:
-        flush: yes
-
-    - name: "NOTSCORED | 3.5.2.3 | PATCH | Ensure iptables are flushed | ipv6"
-      ansible.builtin.iptables:
-        flush: yes
-        ip_version: ipv6
-      when: ubuntu2004cis_ipv6_required
-  when:
-    - ubuntu2004cis_rule_3_5_2_3
-    - ubuntu2004cis_firewall == "nftables"
-    - ubuntu2004cis_setup_firewall
   tags:
     - level1
     - notscored
     - patch
     - rule_3.5.2.3
+  when:
+    - ubuntu2004cis_rule_3_5_2_3
+    - ubuntu2004cis_firewall == "nftables"
+    - ubuntu2004cis_setup_firewall
+  block:
+    - name: "NOTSCORED | 3.5.2.3 | PATCH | Ensure iptables are flushed | ipv4"
+      ansible.builtin.iptables:
+        flush: true
+
+    - name: "NOTSCORED | 3.5.2.3 | PATCH | Ensure iptables are flushed | ipv6"
+      ansible.builtin.iptables:
+        flush: true
+        ip_version: ipv6
+      when: ubuntu2004cis_ipv6_required
 
 - name: "SCORED | 3.5.2.4 | PATCH | Ensure a table exists"
   ansible.builtin.shell: |
@@ -621,6 +625,15 @@
     - rule_3.5.2.5
 
 - name: "SCORED | 3.5.2.6 | PATCH | Ensure loopback traffic is configured"
+  when:
+    - ubuntu2004cis_rule_3_5_2_6
+    - ubuntu2004cis_firewall == "nftables"
+    - ubuntu2004cis_setup_firewall
+  tags:
+    - level1
+    - scored
+    - patch
+    - rule_3.5.2.6
   block:
     - name: "SCORED | 3.5.2.6 | PATCH | Ensure loopback traffic is configured | ingress lo allow nay"
       ansible.builtin.shell: |
@@ -646,15 +659,6 @@
       changed_when: false
       check_mode: false
       when: ubuntu2004cis_ipv6_required
-  when:
-    - ubuntu2004cis_rule_3_5_2_6
-    - ubuntu2004cis_firewall == "nftables"
-    - ubuntu2004cis_setup_firewall
-  tags:
-    - level1
-    - scored
-    - patch
-    - rule_3.5.2.6
 
 - name: "NOTSCORED | 3.5.2.7 | PATCH | Ensure outbound and established connections are configured"
   ansible.builtin.shell: |
@@ -716,6 +720,7 @@
 
 - name: "SCORED | 3.5.2.10 | PATCH | Ensure nftables rules are permanent"
   ansible.builtin.shell: nft list table inet {{ ubuntu2004cis_nftables_table }} > /etc/nftables.conf
+  changed_when: false
   when:
     - ubuntu2004cis_rule_3_5_2_10
     - ubuntu2004cis_firewall == "nftables"
@@ -778,6 +783,15 @@
     - rule_3.5.3.1.2
 
 - name: "SCORED | 3.5.3.2.2 | PATCH | Ensure loopback traffic is configured"
+  when:
+    - ubuntu2004cis_rule_3_5_3_2_2
+    - ubuntu2004cis_firewall == "iptables"
+    - ubuntu2004cis_setup_firewall
+  tags:
+    - level1
+    - scored
+    - patch
+    - rule_3.5.3.2.2
   block:
     - name: "SCORED | 3.5.3.2.2 | PATCH | Ensure loopback traffic is configured | ingress lo allow any"
       ansible.builtin.iptables:
@@ -796,17 +810,17 @@
         chain: INPUT
         jump: DROP
         source: 127.0.0.0/8
+
+- name: "NOTSCORED | 3.5.3.2.3 | PATCH | Ensure outbound and established connections are configured"
   when:
-    - ubuntu2004cis_rule_3_5_3_2_2
+    - ubuntu2004cis_rule_3_5_3_2_3
     - ubuntu2004cis_firewall == "iptables"
     - ubuntu2004cis_setup_firewall
   tags:
     - level1
-    - scored
+    - notscored
     - patch
-    - rule_3.5.3.2.2
-
-- name: "NOTSCORED | 3.5.3.2.3 | PATCH | Ensure outbound and established connections are configured"
+    - rule_3.5.3.2.3
   block:
     - name: "NOTSCORED | 3.5.3.2.3 | PATCH | Ensure outbound and established connections are configured | input "
       ansible.builtin.iptables:
@@ -829,17 +843,17 @@
         - tcp
         - udp
         - icmp
+
+- name: "SCORED | 3.5.3.2.4 | PATCH | Ensure firewall rules exist for all open ports"
   when:
-    - ubuntu2004cis_rule_3_5_3_2_3
+    - ubuntu2004cis_rule_3_5_3_2_4
     - ubuntu2004cis_firewall == "iptables"
     - ubuntu2004cis_setup_firewall
   tags:
     - level1
-    - notscored
+    - scored
     - patch
-    - rule_3.5.3.2.3
-
-- name: "SCORED | 3.5.3.2.4 | PATCH | Ensure firewall rules exist for all open ports"
+    - rule_3.5.3.2.4
   block:
     - name: "SCORED | 3.5.3.2.4 | PATCH | Ensure firewall rules exist for all open ports| ssh"
       ansible.builtin.iptables:
@@ -859,15 +873,6 @@
       loop:
         - tcp
         - udp
-  when:
-    - ubuntu2004cis_rule_3_5_3_2_4
-    - ubuntu2004cis_firewall == "iptables"
-    - ubuntu2004cis_setup_firewall
-  tags:
-    - level1
-    - scored
-    - patch
-    - rule_3.5.3.2.4
 
 - name: "SCORED | 3.5.3.3.1 | PATCH | Ensure IPv6 default deny firewall policy"
   ansible.builtin.iptables:
@@ -890,6 +895,16 @@
     - rule_3.5.3.3.1
 
 - name: "SCORED | 3.5.3.3.2 | PATCH | Ensure IPv6 loopback traffic is configured"
+  when:
+    - ubuntu2004cis_rule_3_5_3_3_2
+    - ubuntu2004cis_firewall == "iptables"
+    - ubuntu2004cis_setup_firewall
+    - ubuntu2004cis_ipv6_required
+  tags:
+    - level1
+    - scored
+    - patch
+    - rule_3.5.3.3.2
   block:
     - name: "SCORED | 3.5.3.3.2 | PATCH | Ensure IPv6 loopback traffic is configured| ingress lo allow any"
       ansible.builtin.iptables:
@@ -911,18 +926,18 @@
         jump: DROP
         source: "::1"
         ip_version: ipv6
+
+- name: "NOTSCORED | 3.5.3.3.3 | PATCH | Ensure IPv6 outbound and established connections are configured"
   when:
-    - ubuntu2004cis_rule_3_5_3_3_2
+    - ubuntu2004cis_rule_3_5_3_3_3
     - ubuntu2004cis_firewall == "iptables"
     - ubuntu2004cis_setup_firewall
     - ubuntu2004cis_ipv6_required
   tags:
     - level1
-    - scored
+    - notscored
     - patch
-    - rule_3.5.3.3.2
-
-- name: "NOTSCORED | 3.5.3.3.3 | PATCH | Ensure IPv6 outbound and established connections are configured"
+    - rule_3.5.3.3.3
   block:
     - name: "NOTSCORED | 3.5.3.3.3 | PATCH | Ensure IPv6 outbound and established connections are configured | input "
       ansible.builtin.iptables:
@@ -947,8 +962,10 @@
         - tcp
         - udp
         - icmp
+
+- name: "NOTSCORED | 3.5.3.3.4 | PATCH | Ensure IPv6 firewall rules exist for all open ports"
   when:
-    - ubuntu2004cis_rule_3_5_3_3_3
+    - ubuntu2004cis_rule_3_5_3_3_4
     - ubuntu2004cis_firewall == "iptables"
     - ubuntu2004cis_setup_firewall
     - ubuntu2004cis_ipv6_required
@@ -956,9 +973,7 @@
     - level1
     - notscored
     - patch
-    - rule_3.5.3.3.3
-
-- name: "NOTSCORED | 3.5.3.3.4 | PATCH | Ensure IPv6 firewall rules exist for all open ports"
+    - rule_3.5.3.3.4
   block:
     - name: "NOTSCORED | 3.5.3.3.4 | PATCH | Ensure IPv6 firewall rules exist for all open ports| ssh"
       ansible.builtin.iptables:
@@ -980,13 +995,3 @@
       loop:
         - tcp
         - udp
-  when:
-    - ubuntu2004cis_rule_3_5_3_3_4
-    - ubuntu2004cis_firewall == "iptables"
-    - ubuntu2004cis_setup_firewall
-    - ubuntu2004cis_ipv6_required
-  tags:
-    - level1
-    - notscored
-    - patch
-    - rule_3.5.3.3.4

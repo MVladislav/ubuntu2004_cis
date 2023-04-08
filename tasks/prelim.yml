@@ -381,5 +381,5 @@
   args:
     executable: /bin/bash
   register: users_password_change_date_in_future
-  changed_when: False
+  changed_when: false
   check_mode: false
