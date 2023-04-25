@@ -7,6 +7,7 @@
     name: net.ipv4.route.flush
     value: "1"
     sysctl_set: true
+  listen: sysctl flush ipv4 route table
   when: ansible_virtualization_type != "docker"
 
 - name: "HANDLER | sysctl flush ipv6 route table"
@@ -15,6 +16,7 @@
     name: net.ipv6.route.flush
     value: "1"
     sysctl_set: true
+  listen: sysctl flush ipv6 route table
   when: ansible_virtualization_type != "docker"
 
 - name: "HANDLER | systemd restart tmp.mount"
@@ -25,6 +27,7 @@
     enabled: true
     masked: false
     state: reloaded
+  listen: systemd restart tmp.mount
   when: ansible_virtualization_type != "docker"
   # ignore_errors: "{{ ubuntu2004cis_ignore_remount_errors }}"
 
@@ -36,11 +39,13 @@
     enabled: true
     masked: false
     state: reloaded
+  listen: systemd restart var-tmp.mount
   # ignore_errors: "{{ ubuntu2004cis_ignore_remount_errors }}"
 
 - name: "HANDLER | generate new grub config"
   become: true
   ansible.builtin.command: grub-mkconfig -o "{{ grub_cfg.stat.path }}"
+  listen: generate new grub config
   changed_when: false
   notify: fix permissions after generate new grub config handler
 
@@ -51,6 +56,7 @@
     owner: root
     group: root
     mode: "0400"
+  listen: fix permissions after generate new grub config handler
   when:
     - ansible_os_family == "Debian"
     - ubuntu2004cis_rule_1_4_1
@@ -60,28 +66,33 @@
   ansible.builtin.service:
     name: firewalld
     state: restarted
+  listen: restart firewalld
 
 - name: "HANDLER | reload nftables"
   become: true
   ansible.builtin.service:
     name: nftables
     state: reloaded
+  listen: reload nftables
 
 - name: "HANDLER | restart xinetd"
   become: true
   ansible.builtin.service:
     name: xinetd
     state: restarted
+  listen: restart xinetd
 
 - name: "HANDLER | restart sshd"
   become: true
   ansible.builtin.service:
     name: ssh
     state: restarted
+  listen: restart sshd
 
 - name: "HANDLER | reload dconf"
   become: true
   ansible.builtin.command: dconf update
+  listen: reload dconf
   changed_when: false
 
 - name: "HANDLER | restart auditd"
@@ -89,6 +100,7 @@
   ansible.builtin.service:
     name: auditd
     state: restarted
+  listen: restart auditd
   when:
     - not ubuntu2004cis_skip_for_travis
   tags:
@@ -97,6 +109,7 @@
 - name: "HANDLER | load audit rules"
   become: true
   ansible.builtin.command: /sbin/augenrules --load
+  listen: load audit rules
   when:
     - not ubuntu2004cis_skip_for_travis
   tags:
@@ -109,9 +122,11 @@
     daemon_reload: true
     enabled: true
     state: restarted
+  listen: restart systemd-coredump
 
 - name: "HANDLER | restart journald"
   become: true
   ansible.builtin.service:
     name: systemd-journald
     state: restarted
+  listen: restart journald
